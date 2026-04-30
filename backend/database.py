@@ -1,6 +1,6 @@
 """
 SQLite database connection and schema management.
-Mirrors the better-sqlite3 schema from the original Frappe Books project.
+SQLite schema and connection management.
 """
 import sqlite3
 import os

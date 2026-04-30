@@ -6,10 +6,9 @@ from services.setup import complete_setup, get_countries, get_currencies, save_s
 
 
 def render(conn):
-    st.title("Welcome to Frappe Books (Python Edition)")
+    st.title("Welcome to Book Keeper")
     st.markdown(
-        "This is a Python/Streamlit port of Frappe Books — "
-        "a free, open-source double-entry bookkeeping application."
+        "A free, open-source double-entry bookkeeping application."
     )
     st.divider()
 

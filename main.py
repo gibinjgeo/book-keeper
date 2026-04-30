@@ -1,5 +1,5 @@
 """
-Frappe Books — Python Edition
+Book Keeper
 A local double-entry bookkeeping application built with Streamlit and SQLite.
 
 Run with:
@@ -15,7 +15,7 @@ from backend.database import get_or_create_db
 from services.setup import is_setup_done, get_settings
 
 st.set_page_config(
-    page_title="Frappe Books (Python)",
+    page_title="Book Keeper",
     page_icon="📒",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -51,7 +51,7 @@ def main():
     company = settings.get("company_name", "My Company")
 
     with st.sidebar:
-        st.markdown(f"## 📒 Frappe Books")
+        st.markdown(f"## 📒 Book Keeper")
         st.caption(company)
         st.divider()
 
