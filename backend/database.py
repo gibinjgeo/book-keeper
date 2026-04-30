@@ -1,6 +1,5 @@
 """
 SQLite database connection and schema management.
-SQLite schema and connection management.
 """
 import sqlite3
 import os
@@ -16,7 +15,7 @@ def get_db_path(company: str = "default") -> str:
 
 
 def get_connection(db_path: str) -> sqlite3.Connection:
-    conn = sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)
+    conn = sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
