@@ -1,10 +1,6 @@
-# Frappe Books — Python Edition
+# Book Keeper
 
-A pure Python port of [Frappe Books](https://frappe.io/books), converted from Electron + Vue 3 + TypeScript to **Streamlit + SQLite**.
-
-## What This Is
-
-Frappe Books is a free, open-source double-entry bookkeeping application. This Python edition preserves the full accounting engine and workflows using only local, offline storage — no Node.js, no Electron, no cloud services required.
+A free, open-source double-entry bookkeeping application built with **Streamlit + SQLite** — fully offline, no cloud services required.
 
 ## Features
 
@@ -31,24 +27,14 @@ Frappe Books is a free, open-source double-entry bookkeeping application. This P
 ### 1. Install dependencies
 
 ```bash
-# Using a virtual environment (recommended)
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Or if you already have a venv with streamlit and pandas:
-
-```bash
-# Activate your existing environment, then:
-cd python_app
-streamlit run main.py
-```
-
 ### 2. Run the app
 
 ```bash
-cd python_app
 streamlit run main.py
 ```
 
@@ -61,7 +47,6 @@ On first launch, fill in your company name, country, and currency. The app will 
 ## Project Structure
 
 ```
-python_app/
 ├── main.py                   # Streamlit entry point
 ├── requirements.txt
 ├── backend/
@@ -87,46 +72,17 @@ python_app/
 │   ├── journal_page.py       # Journal Entries UI
 │   ├── reports_page.py       # Reports UI
 │   └── settings_page.py      # Settings UI
-├── data/
-│   ├── standard_coa.json     # Standard Chart of Accounts fixture
-│   └── country_info.json     # Country information
-└── storage/
-    └── books.db              # SQLite database (auto-created)
+└── data/
+    ├── standard_coa.json     # Standard Chart of Accounts fixture
+    └── country_info.json     # Country information
 ```
-
-## What Was Discarded
-
-| Original Feature | Reason Discarded |
-|---|---|
-| Electron main process | Replaced by Streamlit server |
-| Vue 3 / TailwindCSS frontend | Replaced by Streamlit UI |
-| Vite / TypeScript build chain | Python needs no compilation |
-| Bree job scheduler | No background jobs needed locally |
-| ERPNext sync integration | Cloud-only, cannot work offline |
-| Electron auto-updater | Python app updates itself via pip |
-| IPC (Inter-Process Communication) | Direct Python function calls instead |
-| PDF print via Electron | Streamlit download buttons instead |
-| Telemetry / mothership contact | Removed entirely |
-| Loyalty Programs / Pricing Rules | Complex feature, retained schema only |
-| POS (Point of Sale) module | Complex feature, can be added later |
-| Inventory stock tracking | Complex feature, can be added later |
-| Cloud authentication | Local operation, no auth required |
-
-## Accounting Engine
-
-The double-entry engine faithfully mirrors the original TypeScript logic:
-
-- **Sales Invoice submit** → DR Debtors, CR Income (per item), CR Tax accounts
-- **Purchase Invoice submit** → CR Payables, DR Expense (per item), DR Tax accounts
-- **Payment (Receive)** → DR Cash/Bank, CR Debtors
-- **Payment (Pay)** → DR Payables, CR Cash/Bank
-- **Journal Entry** → Any custom DR/CR combination (validated balanced)
-- **Cancel** → Marks ledger entries as `is_cancelled = 1` (preserves audit trail)
-
-All amounts are stored as `REAL` (IEEE 754 double) in SQLite, consistent with the original `better-sqlite3` storage.
 
 ## Requirements
 
 - Python 3.10+
 - streamlit >= 1.32.0
 - pandas >= 2.0.0
+
+---
+
+Inspired by [Frappe Books](https://frappe.io/books)
