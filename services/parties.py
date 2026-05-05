@@ -24,8 +24,11 @@ def create_party(conn: sqlite3.Connection, data: dict) -> None:
     conn.execute(
         """INSERT INTO party
            (name, role, email, phone, address, city, state, country,
-            zip_code, default_account, currency, tax_id)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            zip_code, default_account, currency, tax_id,
+            is_active, notes, opening_balance, contact_person,
+            shipping_address, shipping_city, shipping_state,
+            shipping_country, shipping_zip)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (
             data["name"],
             data.get("role", "Both"),
@@ -39,6 +42,15 @@ def create_party(conn: sqlite3.Connection, data: dict) -> None:
             data.get("default_account"),
             data.get("currency", "USD"),
             data.get("tax_id", ""),
+            1 if data.get("is_active", True) else 0,
+            data.get("notes", ""),
+            float(data.get("opening_balance", 0)),
+            data.get("contact_person", ""),
+            data.get("shipping_address", ""),
+            data.get("shipping_city", ""),
+            data.get("shipping_state", ""),
+            data.get("shipping_country", ""),
+            data.get("shipping_zip", ""),
         ),
     )
     conn.commit()
@@ -49,7 +61,10 @@ def update_party(conn: sqlite3.Connection, original_name: str, data: dict) -> No
         """UPDATE party SET
            name = ?, role = ?, email = ?, phone = ?, address = ?,
            city = ?, state = ?, country = ?, zip_code = ?,
-           default_account = ?, currency = ?, tax_id = ?
+           default_account = ?, currency = ?, tax_id = ?,
+           is_active = ?, notes = ?, opening_balance = ?, contact_person = ?,
+           shipping_address = ?, shipping_city = ?, shipping_state = ?,
+           shipping_country = ?, shipping_zip = ?
            WHERE name = ?""",
         (
             data["name"],
@@ -64,6 +79,15 @@ def update_party(conn: sqlite3.Connection, original_name: str, data: dict) -> No
             data.get("default_account"),
             data.get("currency", "USD"),
             data.get("tax_id", ""),
+            1 if data.get("is_active", True) else 0,
+            data.get("notes", ""),
+            float(data.get("opening_balance", 0)),
+            data.get("contact_person", ""),
+            data.get("shipping_address", ""),
+            data.get("shipping_city", ""),
+            data.get("shipping_state", ""),
+            data.get("shipping_country", ""),
+            data.get("shipping_zip", ""),
             original_name,
         ),
     )

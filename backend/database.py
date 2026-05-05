@@ -8,6 +8,8 @@ from pathlib import Path
 STORAGE_DIR = Path(__file__).parent.parent / "storage"
 STORAGE_DIR.mkdir(exist_ok=True)
 
+SCHEMA_VERSION = 3
+
 
 def get_db_path(company: str = "default") -> str:
     safe_name = "".join(c if c.isalnum() or c in ("-", "_") else "_" for c in company)
@@ -35,7 +37,20 @@ def create_schema(conn: sqlite3.Connection) -> None:
             write_off_account TEXT,
             discount_account TEXT,
             bank_account TEXT,
-            setup_done INTEGER DEFAULT 0
+            setup_done INTEGER DEFAULT 0,
+            tax_number TEXT DEFAULT '',
+            phone TEXT DEFAULT '',
+            email TEXT DEFAULT '',
+            website TEXT DEFAULT '',
+            address TEXT DEFAULT '',
+            city TEXT DEFAULT '',
+            state TEXT DEFAULT '',
+            zip_code TEXT DEFAULT '',
+            invoice_prefix TEXT DEFAULT 'SINV-',
+            bill_prefix TEXT DEFAULT 'PINV-',
+            quote_prefix TEXT DEFAULT 'QTE-',
+            payment_prefix TEXT DEFAULT 'PAY-',
+            logo_path TEXT DEFAULT ''
         );
 
         CREATE TABLE IF NOT EXISTS number_series (
@@ -67,7 +82,16 @@ def create_schema(conn: sqlite3.Connection) -> None:
             currency TEXT DEFAULT 'USD',
             tax_id TEXT DEFAULT '',
             loyalty_points INTEGER DEFAULT 0,
-            created_at TEXT DEFAULT (datetime('now'))
+            created_at TEXT DEFAULT (datetime('now')),
+            is_active INTEGER DEFAULT 1,
+            notes TEXT DEFAULT '',
+            opening_balance REAL DEFAULT 0,
+            contact_person TEXT DEFAULT '',
+            shipping_address TEXT DEFAULT '',
+            shipping_city TEXT DEFAULT '',
+            shipping_state TEXT DEFAULT '',
+            shipping_country TEXT DEFAULT '',
+            shipping_zip TEXT DEFAULT ''
         );
 
         CREATE TABLE IF NOT EXISTS item_group (
@@ -89,12 +113,83 @@ def create_schema(conn: sqlite3.Connection) -> None:
             item_type TEXT DEFAULT 'Product',
             unit TEXT DEFAULT 'Unit',
             rate REAL DEFAULT 0,
+            purchase_rate REAL DEFAULT 0,
             description TEXT DEFAULT '',
             income_account TEXT REFERENCES account(name),
             expense_account TEXT REFERENCES account(name),
             tax TEXT REFERENCES tax(name),
             track_item INTEGER DEFAULT 0,
+            stock_quantity REAL DEFAULT 0,
             barcode TEXT DEFAULT '',
+            is_active INTEGER DEFAULT 1,
+            created_at TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS quote (
+            name TEXT PRIMARY KEY,
+            party TEXT REFERENCES party(name),
+            date TEXT,
+            expiry_date TEXT,
+            status TEXT DEFAULT 'Draft',
+            net_total REAL DEFAULT 0,
+            tax_total REAL DEFAULT 0,
+            discount_amount REAL DEFAULT 0,
+            grand_total REAL DEFAULT 0,
+            currency TEXT DEFAULT 'USD',
+            user_remark TEXT DEFAULT '',
+            number_series TEXT DEFAULT 'QTE-',
+            converted_to TEXT,
+            created_at TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS quote_item (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            parent TEXT NOT NULL REFERENCES quote(name),
+            item TEXT REFERENCES item(name),
+            description TEXT DEFAULT '',
+            account TEXT REFERENCES account(name),
+            quantity REAL DEFAULT 1,
+            rate REAL DEFAULT 0,
+            amount REAL DEFAULT 0,
+            tax_rate REAL DEFAULT 0,
+            tax_amount REAL DEFAULT 0,
+            tax_account TEXT REFERENCES account(name)
+        );
+
+        CREATE TABLE IF NOT EXISTS bank_account (
+            name TEXT PRIMARY KEY,
+            account_type TEXT DEFAULT 'Bank',
+            account_number TEXT DEFAULT '',
+            bank_name TEXT DEFAULT '',
+            currency TEXT DEFAULT 'USD',
+            opening_balance REAL DEFAULT 0,
+            is_active INTEGER DEFAULT 1,
+            gl_account TEXT REFERENCES account(name),
+            created_at TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS bank_transaction (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            bank_account TEXT NOT NULL REFERENCES bank_account(name),
+            date TEXT NOT NULL,
+            transaction_type TEXT NOT NULL,
+            amount REAL NOT NULL DEFAULT 0,
+            description TEXT DEFAULT '',
+            reference TEXT DEFAULT '',
+            category TEXT DEFAULT '',
+            payment_method TEXT DEFAULT '',
+            linked_type TEXT DEFAULT '',
+            linked_name TEXT DEFAULT '',
+            reconciled INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS opening_balance (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account TEXT REFERENCES account(name),
+            debit REAL DEFAULT 0,
+            credit REAL DEFAULT 0,
+            date TEXT,
             created_at TEXT DEFAULT (datetime('now'))
         );
 
@@ -240,10 +335,48 @@ def create_schema(conn: sqlite3.Connection) -> None:
     conn.commit()
 
 
+def migrate_schema(conn: sqlite3.Connection) -> None:
+    """Apply incremental ALTER TABLE statements for new columns on existing DBs."""
+    migrations = [
+        ("accounting_settings", "tax_number", "TEXT DEFAULT ''"),
+        ("accounting_settings", "phone", "TEXT DEFAULT ''"),
+        ("accounting_settings", "email", "TEXT DEFAULT ''"),
+        ("accounting_settings", "website", "TEXT DEFAULT ''"),
+        ("accounting_settings", "address", "TEXT DEFAULT ''"),
+        ("accounting_settings", "city", "TEXT DEFAULT ''"),
+        ("accounting_settings", "state", "TEXT DEFAULT ''"),
+        ("accounting_settings", "zip_code", "TEXT DEFAULT ''"),
+        ("accounting_settings", "invoice_prefix", "TEXT DEFAULT 'SINV-'"),
+        ("accounting_settings", "bill_prefix", "TEXT DEFAULT 'PINV-'"),
+        ("accounting_settings", "quote_prefix", "TEXT DEFAULT 'QTE-'"),
+        ("accounting_settings", "payment_prefix", "TEXT DEFAULT 'PAY-'"),
+        ("accounting_settings", "logo_path", "TEXT DEFAULT ''"),
+        ("party", "is_active", "INTEGER DEFAULT 1"),
+        ("party", "notes", "TEXT DEFAULT ''"),
+        ("party", "opening_balance", "REAL DEFAULT 0"),
+        ("party", "contact_person", "TEXT DEFAULT ''"),
+        ("party", "shipping_address", "TEXT DEFAULT ''"),
+        ("party", "shipping_city", "TEXT DEFAULT ''"),
+        ("party", "shipping_state", "TEXT DEFAULT ''"),
+        ("party", "shipping_country", "TEXT DEFAULT ''"),
+        ("party", "shipping_zip", "TEXT DEFAULT ''"),
+        ("item", "purchase_rate", "REAL DEFAULT 0"),
+        ("item", "stock_quantity", "REAL DEFAULT 0"),
+        ("item", "is_active", "INTEGER DEFAULT 1"),
+    ]
+    for table, column, col_def in migrations:
+        try:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {col_def}")
+        except Exception:
+            pass
+    conn.commit()
+
+
 def get_or_create_db(company: str = "default") -> tuple[sqlite3.Connection, str]:
     db_path = get_db_path(company)
     conn = get_connection(db_path)
     create_schema(conn)
+    migrate_schema(conn)
     return conn, db_path
 
 
@@ -253,6 +386,7 @@ def seed_number_series(conn: sqlite3.Connection) -> None:
         ("PINV-", "PurchaseInvoice", 0),
         ("PAY-", "Payment", 0),
         ("JV-", "JournalEntry", 0),
+        ("QTE-", "Quote", 0),
     ]
     for name, ref_type, current in series:
         conn.execute(

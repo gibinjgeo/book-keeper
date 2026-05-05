@@ -22,13 +22,20 @@ PAYMENT_METHODS = ["Cash", "Bank Transfer", "Cheque", "Card", "Online"]
 def render(conn):
     st.title("Payments")
 
-    tab_list, tab_create = st.tabs(["Payment List", "New Payment"])
+    open_new = st.session_state.pop("_new_payment", False)
 
-    with tab_list:
-        _render_payment_list(conn)
-
-    with tab_create:
-        _render_create_payment(conn)
+    if open_new:
+        tabs = st.tabs(["New Payment", "Payment List"])
+        with tabs[0]:
+            _render_create_payment(conn)
+        with tabs[1]:
+            _render_payment_list(conn)
+    else:
+        tabs = st.tabs(["Payment List", "New Payment"])
+        with tabs[0]:
+            _render_payment_list(conn)
+        with tabs[1]:
+            _render_create_payment(conn)
 
 
 def _render_payment_list(conn):

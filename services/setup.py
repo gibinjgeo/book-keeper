@@ -41,7 +41,10 @@ def save_settings(conn: sqlite3.Connection, settings: dict) -> None:
             """UPDATE accounting_settings SET
                company_name = ?, country = ?, currency = ?,
                fiscal_year_start = ?, fiscal_year_end = ?,
-               round_off_account = ?, bank_account = ?, discount_account = ?
+               round_off_account = ?, bank_account = ?, discount_account = ?,
+               tax_number = ?, phone = ?, email = ?, website = ?,
+               address = ?, city = ?, state = ?, zip_code = ?,
+               invoice_prefix = ?, bill_prefix = ?, quote_prefix = ?, payment_prefix = ?
                WHERE id = 1""",
             (
                 settings.get("company_name", ""),
@@ -52,6 +55,18 @@ def save_settings(conn: sqlite3.Connection, settings: dict) -> None:
                 settings.get("round_off_account"),
                 settings.get("bank_account"),
                 settings.get("discount_account"),
+                settings.get("tax_number", ""),
+                settings.get("phone", ""),
+                settings.get("email", ""),
+                settings.get("website", ""),
+                settings.get("address", ""),
+                settings.get("city", ""),
+                settings.get("state", ""),
+                settings.get("zip_code", ""),
+                settings.get("invoice_prefix", "SINV-"),
+                settings.get("bill_prefix", "PINV-"),
+                settings.get("quote_prefix", "QTE-"),
+                settings.get("payment_prefix", "PAY-"),
             ),
         )
     else:

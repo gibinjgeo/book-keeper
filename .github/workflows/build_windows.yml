@@ -1,0 +1,40 @@
+name: Build Windows Installer
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:       # lets you trigger it manually from GitHub UI
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"   # 3.11 has best PyInstaller compatibility
+
+      - name: Install dependencies
+        run: |
+          pip install streamlit pandas altair pyarrow pyinstaller
+
+      - name: Build with PyInstaller
+        run: |
+          pyinstaller build/BookKeeper.spec --noconfirm --clean
+
+      - name: Install Inno Setup
+        run: choco install innosetup --yes
+
+      - name: Build installer
+        run: iscc build\installer.iss
+
+      - name: Upload installer as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BookKeeper_Setup
+          path: dist\BookKeeper_Setup.exe
+          retention-days: 30

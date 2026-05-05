@@ -19,13 +19,20 @@ from services.accounts import get_account_names, get_payable_accounts
 def render(conn):
     st.title("Purchase Invoices")
 
-    tab_list, tab_create = st.tabs(["Invoice List", "New Invoice"])
+    open_new = st.session_state.pop("_new_purchase_invoice", False)
 
-    with tab_list:
-        _render_invoice_list(conn)
-
-    with tab_create:
-        _render_create_invoice(conn)
+    if open_new:
+        tabs = st.tabs(["New Invoice", "Invoice List"])
+        with tabs[0]:
+            _render_create_invoice(conn)
+        with tabs[1]:
+            _render_invoice_list(conn)
+    else:
+        tabs = st.tabs(["Invoice List", "New Invoice"])
+        with tabs[0]:
+            _render_invoice_list(conn)
+        with tabs[1]:
+            _render_create_invoice(conn)
 
 
 def _render_invoice_list(conn):

@@ -1,3 +1,42 @@
-/Dockerfile
-/book-keeper.tar.gz
-/.dockerignore
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+
+# ── Virtual environment ───────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+
+# ── Database (live data — never commit user data) ─────────────────────────────
+storage/*.db
+storage/*.db-shm
+storage/*.db-wal
+storage/backups/
+
+# ── PyInstaller build output ──────────────────────────────────────────────────
+dist/
+build/__pycache__/
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.iml
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Test / CI cache ───────────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ── Claude Code local settings ───────────────────────────────────────────────
+.claude/
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+*.tar.gz
+*.zip
+Dockerfile
+.dockerignore
