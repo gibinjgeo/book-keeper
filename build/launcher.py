@@ -30,6 +30,7 @@ def main():
     os.environ["STREAMLIT_SERVER_PORT"] = str(PORT)
     os.environ["STREAMLIT_BROWSER_GATHER_USAGE_STATS"] = "false"
     os.environ["STREAMLIT_SERVER_FILE_WATCHER_TYPE"] = "none"
+    os.environ["STREAMLIT_GLOBAL_DEVELOPMENT_MODE"] = "false"
 
     main_script = os.path.join(bundle_dir, "main.py")
 
@@ -42,6 +43,7 @@ def main():
         f"--server.port={PORT}",
         "--browser.gatherUsageStats=false",
         "--server.fileWatcherType=none",
+        "--global.developmentMode=false",
     ]
     sys.exit(stcli.main())
 
