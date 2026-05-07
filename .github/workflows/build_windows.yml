@@ -1,12 +1,12 @@
-name: Build Windows Installer
+name: Build Installers
 
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:       # lets you trigger it manually from GitHub UI
+  workflow_dispatch:
 
 jobs:
-  build:
+  build-windows:
     runs-on: windows-latest
 
     steps:
@@ -16,15 +16,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"   # 3.11 has best PyInstaller compatibility
+          python-version: "3.11"
 
       - name: Install dependencies
-        run: |
-          pip install streamlit pandas altair pyarrow pyinstaller
+        run: pip install streamlit pandas altair pyarrow pyinstaller
 
       - name: Build with PyInstaller
-        run: |
-          pyinstaller build/BookKeeper.spec --noconfirm --clean
+        run: pyinstaller build/BookKeeper.spec --noconfirm --clean
 
       - name: Install Inno Setup
         run: choco install innosetup --yes
@@ -37,4 +35,32 @@ jobs:
         with:
           name: BookKeeper_Setup
           path: dist\BookKeeper_Setup.exe
+          retention-days: 30
+
+  build-ubuntu:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install streamlit pandas altair pyarrow pyinstaller
+
+      - name: Build with PyInstaller
+        run: pyinstaller build/BookKeeper.spec --noconfirm --clean
+
+      - name: Build .deb package
+        run: bash build/build.sh
+
+      - name: Upload .deb as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BookKeeper_deb
+          path: dist/bookkeeper_*.deb
           retention-days: 30
